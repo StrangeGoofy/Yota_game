@@ -1,0 +1,1 @@
+htacess на защиту config

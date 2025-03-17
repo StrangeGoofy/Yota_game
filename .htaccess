@@ -1,0 +1,17 @@
+RewriteEngine On
+
+# index.php
+DirectoryIndex index.php
+
+# Запрещаем ./config
+RewriteRule ^config/ - [F,L]
+
+# Запрещаем доступ к файлам ./config/*
+<FilesMatch "(\.ini|\.env|config\.php)$">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]

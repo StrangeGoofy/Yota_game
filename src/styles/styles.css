@@ -1,0 +1,101 @@
+:root {
+	font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+	line-height: 1.5;
+	font-weight: 400;
+
+	color-scheme: light dark;
+
+	background-color: #242424;
+
+	font-synthesis: none;
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+body,
+html {
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+}
+#game-container {
+	width: 100vw;
+	height: 100vh;
+	position: relative;
+	background: #eee;
+}
+#game-field {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	transform-origin: 0 0;
+}
+
+.grid-cell {
+	position: absolute;
+	border-radius: 8px;
+	/* width и height в renderBoard() */
+	border: 1px solid lightgrey;
+	box-sizing: border-box;
+}
+.card {
+	width: 8vw;
+	height: 8vw;
+	border: 1px solid #c9c9c9;
+	border-radius: 8px;
+	background: linear-gradient(90deg, #ffffff, #e0e0e0);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 2vw;
+	user-select: none;
+	filter: drop-shadow(0 0 1px rgba(32, 32, 32, 0.4));
+	transition: transform 0.3s ease;
+}
+
+/* Контейнер для карт игрока */
+#player-hand {
+	position: fixed;
+	bottom: 5%;
+	left: 0;
+	width: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 1000;
+	gap: 10px;
+}
+/* Карты в руке располагаются с помощью flex (без абсолютного позиционирования) */
+#player-hand .card {
+	position: static;
+	margin: 0 10px;
+	cursor: pointer;
+}
+.card.selected {
+	transform: translateY(-3vh);
+}
+.highlight {
+	position: absolute;
+	border-radius: 8px;
+	border: 2px dashed blue;
+	background: rgba(0, 0, 255, 0.1);
+	box-sizing: border-box;
+	cursor: pointer;
+}
+/* Стили для UI-контейнера с кнопкой завершения хода */
+.ui {
+	position: fixed;
+	top: 10px;
+	right: 10px;
+	z-index: 2000;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	font-family: sans-serif;
+}
+.ui button {
+	padding: 5px 10px;
+	font-size: 16px;
+	cursor: pointer;
+}
