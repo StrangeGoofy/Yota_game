@@ -15,6 +15,7 @@ export default class PlayerHandsView {
 
 	render() {
 		this.container.innerHTML = '';
+		//console.log('this.hands_cards:', this.hands_cards);
 		// Проходим по массиву карт руки и создаем для каждой экземпляр CardView
 		this.hands_cards.forEach((card, index) => {
 			const cardView = new CardView(card, index, (card, index, e) => {
@@ -25,5 +26,22 @@ export default class PlayerHandsView {
 
 			this.container.appendChild(cardView.element);
 		});
+	}
+
+	removeCard(index) {
+		if (index < 0 || index >= this.hands_cards.length) {
+			console.warn('Индекс вне диапазона в removeCard:', index);
+			return;
+		}
+
+		// Удаляем из массива
+		this.hands_cards.splice(index, 1);
+
+		// Перерисовываем руку
+		this.render();
+	}
+
+	updateCards(newCards) {
+		this.hands_cards = newCards;
 	}
 }

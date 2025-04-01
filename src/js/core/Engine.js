@@ -5,65 +5,75 @@ import { getCandidateCells } from './Validate.js';
 import { generateDeck, shuffle } from './Utils.js';
 
 import { updateGameState } from '../Api.js';
+import { playCards } from '../Api.js';
 
 export default class Engine {
 	constructor(mode = 'singleplayer', gameId) {
 		this.mode = mode;
+		this.playedCards = [];
+		this._onUpdate = null;
+		//this.pendingPlacedCards = []; // карты, которые локально положили, но не отправили
 		if (this.mode === 'multiplayer') {
-			this.initMultiplayer(gameId);
+			this.initMultiplayer();
 		} else {
 			this.initSingleMode();
 		}
 	}
 
-	initSingleMode() {
-		this.gameField = new GameField();
-
-		this.deck_cards = shuffle(generateDeck());
-		this.deck_cards_count = this.deck_cards.length;
-
-		// Инициализируем игроков (пример: два игрока)
-		this.players = [new Player(1, 'Alice'), new Player(2, 'Bob')];
-		this.currentTurn = new CurrentTurn(this.players[0].id);
-
-		// Раздаем по 4 карты каждому игроку
-		this.players.forEach((player) => {
-			for (let i = 0; i < 4; i++) {
-				const card = this.deck_cards.shift();
-				player.addCard(card);
-			}
-		});
-
-		// Обновляем количество карт в колоде после раздачи
-		this.deck_cards_count = this.deck_cards.length;
-
-		// Первая карта из колоды ставится сразу на поле в ячейку (0,0)
-		const firstCard = this.deck_cards.shift();
-		this.gameField.placeCard(firstCard, 0, 0);
-
-		// Формируем состояние игры (GameState)
-		this.gameState = {
-			players: this.players.map((p) => ({
-				id: p.id,
-				nickname: p.nickname,
-				cards_count: p.cards_count,
-				score: p.score,
-			})),
-			player_id: this.players[0].id,
-			current_turn_id: this.currentTurn.player_id,
-			table_cards: this.gameField.cells,
-			deck_cards: this.deck_cards,
-			deck_cards_count: this.deck_cards.length,
-			hands_cards: this.players[0].cards, // рука текущего игрока
-			time: Date.now(),
-		};
-
-		console.log('Инициализирована игра:', this.gameState);
+	setUpdateCallback(callback) {
+		this._onUpdate = callback;
 	}
 
-	initMultiplayer(gameId) {
+	// initSingleMode() {
+	// 	this.gameField = new GameField();
+
+	// 	this.deck_cards = shuffle(generateDeck());
+	// 	this.deck_cards_count = this.deck_cards.length;
+
+	// 	// Инициализируем игроков (пример: два игрока)
+	// 	this.players = [new Player(1, 'Alice'), new Player(2, 'Bob')];
+	// 	this.currentTurn = new CurrentTurn(this.players[0].id);
+
+	// 	// Раздаем по 4 карты каждому игроку
+	// 	this.players.forEach((player) => {
+	// 		for (let i = 0; i < 4; i++) {
+	// 			const card = this.deck_cards.shift();
+	// 			player.addCard(card);
+	// 		}
+	// 	});
+	// 	console.log('players[0].cards:', this.players[0].cards);
+	// 	this.hands_cards = this.players[0].cards;
+
+	// 	// Обновляем количество карт в колоде после раздачи
+	// 	this.deck_cards_count = this.deck_cards.length;
+
+	// 	// Первая карта из колоды ставится сразу на поле в ячейку (0,0)
+	// 	const firstCard = this.deck_cards.shift();
+	// 	this.gameField.placeCard(firstCard, 0, 0);
+
+	// 	// Формируем состояние игры (GameState)
+	// 	this.gameState = {
+	// 		players: this.players.map((p) => ({
+	// 			id: p.id,
+	// 			nickname: p.nickname,
+	// 			cards_count: p.cards_count,
+	// 			score: p.score,
+	// 		})),
+	// 		player_id: this.players[0].id,
+	// 		current_turn_id: this.currentTurn.player_id,
+	// 		table_cards: this.gameField.cells,
+	// 		deck_cards: this.deck_cards,
+	// 		deck_cards_count: this.deck_cards.length,
+	// 		hands_cards: this.players[0].cards, // рука текущего игрока
+	// 		time: Date.now(),
+	// 	};
+
+	// 	console.log('Инициализирована игра:', this.gameState);
+	// }
+
+	initMultiplayer() {
 		// Начальная загрузка состояния игры
-		updateGameState(gameId).then((data) => {
+		updateGameState().then((data) => {
 			this.gameState = data;
 			this.gameField = new GameField(this.gameState.table_cards);
 
@@ -78,60 +88,49 @@ export default class Engine {
 
 		// Периодическое обновление состояния каждые 3 секунды
 		setInterval(() => {
-			updateGameState(gameId).then((data) => {
+			updateGameState().then((data) => {
 				this.gameState = data;
-				console.log('Обновлено состояние мультиплеерной игры:', this.gameState);
+				this.gameField = new GameField(data.table_cards);
+				this.players = data.players.map((p) => new Player(p.id, p.nickname));
+				this.currentTurn = new CurrentTurn(data.current_turn_id);
+				this.hands_cards = data.hands_cards;
+
+				if (this._onUpdate) this._onUpdate();
 			});
 		}, 3000);
 	}
 
+	setUpdateCallback(callback) {
+		this._onUpdate = callback;
+	}
+
 	playCardFromHand(cardIndex, x, y) {
-		// if (this.mode === 'multiplayer') {
-		// 	console.warn('В мультиплеерном режиме ход выполняется через API');
-		// 	return;
-		// }
-
-		// 1. Проверяем, что текущий игрок имеет ход
-		console.log(this.gameState.players);
 		const currentPlayer = this.players.find((p) => p.id === this.gameState.player_id);
-		if (!currentPlayer) {
-			console.error('Текущий игрок не найден');
+		if (!currentPlayer || this.gameState.current_turn_id !== currentPlayer.id) {
+			console.warn('Не ваш ход');
 			return;
 		}
 
-		if (this.gameState.current_turn_id !== currentPlayer.id) {
-			console.error('Сейчас не ваш ход');
-			return;
-		}
-		console.log(this.gameState.hands_cards);
-		// // 2. Проверяем, что у игрока есть карта с заданным индексом
-		// if (cardIndex < 0 || cardIndex >= currentPlayer.cards.length) {
-		// 	console.error('Нет карты с таким индексом в руке');
-		// 	return;
-		// }
 		const card = this.hands_cards[cardIndex];
-		console.log(currentPlayer);
-
-		// 3. Валидируем правило: карта должна касаться хотя бы одной уже поставленной
-		const placedCells = this.gameField.cells.filter((cell) => cell.card);
-		const candidates = getCandidateCells(placedCells);
-		const isCandidate = candidates.some((candidate) => candidate.x === x && candidate.y === y);
-		if (!isCandidate) {
-			alert('Выбранная ячейка не является допустимой для размещения карты');
-			console.error('Выбранная ячейка не является допустимой для размещения карты');
+		if (!card) {
+			console.error('Карта не найдена');
 			return;
 		}
 
-		// 4. Удаляем карту из руки, размещаем её на поле и добавляем в текущий ход
+		// Удаляем карту из руки и добавляем её в локальное поле
 		currentPlayer.removeCard(cardIndex);
+		this.hands_cards = currentPlayer.cards;
+		this.gameState.hands_cards = currentPlayer.cards;
+
 		this.gameField.placeCard(card, x, y);
 		this.currentTurn.addCard(card, x, y);
 
-		// Обновляем состояние игры
-		this.gameState.hands_cards = currentPlayer.cards;
-		this.gameState.table_cards = this.gameField.cells;
-		console.log(`Карта ${card.shape} ${card.color} ${card.number} поставлена в (${x}, ${y})`);
+		this.playedCards.push({ x, y, card_id: card.id, card });
+
+		// Обновляем отрисовку
+		if (this._onUpdate) this._onUpdate();
 	}
+
 
 	undoTurn() {
 		if (this.mode === 'multiplayer') {
@@ -169,21 +168,42 @@ export default class Engine {
 	 * 3) Передаёт ход следующему игроку.
 	 */
 	finishTurn() {
-		if (this.mode === 'multiplayer') {
-			console.warn('В мультиплеерном режиме ход завершается через API');
+		if (this.mode !== 'multiplayer') return;
+	
+		if (this.playedCards.length === 0) {
+			console.log('Ход пропущен');
 			return;
 		}
-		const currentPlayer = this.players.find((p) => p.id === this.gameState.player_id);
-		if (this.currentTurn.cards.length > 0) {
-			// Добавляем недостающие карты до 4 для игрока, который сделал ход
-			while (currentPlayer.cards.length < 4 && this.deck_cards.length > 0) {
-				currentPlayer.addCard(this.deck_cards.shift());
-			}
-		} else {
-			console.log('Ход пропущен. Игрок не сыграл ни одной карты.');
-		}
-		// Передача хода следующему игроку
-		this.passTurn();
+	
+		const payload = this.playedCards.map(({ x, y, card_id }) => ({ x, y, card_id }));
+	
+		playCards(payload)
+			.then((response) => {
+				if (response.success) {
+					console.log('Ход завершён успешно');
+	
+					this.playedCards = [];
+	
+					updateGameState().then((data) => {
+						this.gameState = data;
+						this.gameField = new GameField(data.table_cards);
+						this.players = data.players.map((p) => new Player(p.id, p.nickname));
+						this.currentTurn = new CurrentTurn(data.current_turn_id);
+						this.hands_cards = data.hands_cards;
+	
+						if (this._onUpdate) this._onUpdate();
+					});
+				} else {
+					console.error('Ошибка от сервера:', response.error);
+					alert('Ошибка: ' + response.error);
+					this._rollbackPlayedCards();
+				}
+			})
+			.catch((err) => {
+				console.error('Ошибка отправки:', err);
+				alert('Ошибка связи с сервером');
+				this._rollbackPlayedCards();
+			});
 	}
 
 	/**
@@ -210,6 +230,7 @@ export default class Engine {
 
 		console.log('Ход передан следующему игроку:', nextPlayer.nickname);
 	}
+
 
 	swapCards(selectedIndices) {
 		if (this.mode === 'multiplayer') {
@@ -254,5 +275,35 @@ export default class Engine {
 
 		// Передаём ход следующему игроку
 		this.passTurn();
+	}
+
+	_rollbackPlayedCards() {
+		if (this.playedCards.length === 0) return;
+
+		const currentPlayer = this.players.find(p => p.id === this.gameState.player_id);
+		if (!currentPlayer) {
+			console.error('Текущий игрок не найден');
+			return;
+		}
+
+		// Возвращаем карты в руку
+		this.playedCards.forEach(({ card }) => {
+			if (card) {
+				currentPlayer.cards.push(card);
+			}
+		});
+
+		// Удаляем эти карты с поля
+		this.playedCards.forEach(({ x, y }) => {
+			const index = this.gameField.cells.findIndex(cell => cell.x === x && cell.y === y);
+			if (index !== -1) this.gameField.cells.splice(index, 1);
+		});
+
+		// Очистка
+		this.playedCards = [];
+		this.hands_cards = currentPlayer.cards;
+		this.gameState.table_cards = this.gameField.cells;
+
+		if (this._onUpdate) this._onUpdate();
 	}
 }

@@ -3,23 +3,32 @@ require_once '../config/db_connect.php';
 
 header('Content-Type: application/json');
 
+// Получаем JSON из тела запроса
 $data = json_decode(file_get_contents('php://input'), true);
-$game_id = $data['game_id'] ?? null;
-$new_state = json_encode($data['state'] ?? []);
 
-if (!$game_id) {
-    echo json_encode(['error' => 'Game ID not provided']);
+// Извлекаем токен
+$token = $_COOKIE['auth_token'];
+
+if (!$token) {
+    echo json_encode(['error' => 'Token not provided']);
     exit;
 }
 
 try {
-    $stmt = $pdo->prepare("CALL update_game_state(:game_id, :state)");
-    $stmt->bindParam(':game_id', $game_id, PDO::PARAM_INT);
-    $stmt->bindParam(':state', $new_state, PDO::PARAM_STR);
+    // Предполагаем, что get_game_json — это функция в БД, которая принимает токен
+    $stmt = $pdo->prepare("SELECT game_get_state_json(:token)");
+    $stmt->bindParam(':token', $token, PDO::PARAM_STR);
     $stmt->execute();
 
-    echo json_encode(['success' => true]);
+    // Получаем результат функции
+    $result = $stmt->fetchColumn();
+
+    if ($result) {
+        // Предполагаем, что функция уже возвращает JSON, поэтому просто декодируем и отдаем как объект
+        echo $result;
+    } else {
+        echo json_encode(['error' => 'Game data not found']);
+    }
 } catch (PDOException $e) {
     echo json_encode(['error' => $e->getMessage()]);
 }
-?>

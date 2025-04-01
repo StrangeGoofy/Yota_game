@@ -11,9 +11,18 @@ export default class GameFieldView {
 	 * @param {Function} [onCellClick] - callback при клике по ячейке, получает (cellDiv, x, y)
 	 */
 	constructor(gameField, container = 'game-field', onCellClick = null) {
-		this.gameField = gameField; // gameField.cells – массив ячеек, в которых уже стоят карточки
+		//this.gameField = gameField; // gameField.cells – массив ячеек, в которых уже стоят карточки
 		this.container = typeof container === 'string' ? document.getElementById(container) : container;
 		this.onCellClick = onCellClick;
+		this.setField(gameField);
+	}
+
+	setField(gameField) {
+		this.gameField = gameField;
+	}
+
+	setPendingCards(cards) {
+		this.pendingCards = cards;
 	}
 
 	/**
@@ -101,11 +110,19 @@ export default class GameFieldView {
 	 * Для каждой ячейки с карточкой создаётся CardView и помещается в нужную позицию.
 	 */
 	renderCards() {
-		// Для каждой ячейки, в которой есть карточка, находим позицию и добавляем представление карточки
-		this.gameField.cells.forEach((cell) => {
+		// 1. Собираем все карточки, включая временные (pending)
+		const allCells = [...this.gameField.cells];
+	
+		if (this.pendingCards?.length > 0) {
+			for (const { x, y, card } of this.pendingCards) {
+				allCells.push({ x, y, card });
+			}
+		}
+	
+		// 2. Отрисовываем каждую карточку
+		allCells.forEach((cell) => {
 			if (cell.card) {
 				const cardView = new CardView(cell.card);
-				// Вычисляем позицию для карточки (по тем же правилам, что и для клетки)
 				const centerX = dimensions.windowWidth / 2;
 				const centerY = dimensions.windowHeight / 2;
 				const left = centerX + cell.x * dimensions.cellSize - dimensions.cardSize / 2;
@@ -113,7 +130,6 @@ export default class GameFieldView {
 				cardView.element.style.position = 'absolute';
 				cardView.element.style.left = left + 'px';
 				cardView.element.style.top = top + 'px';
-				// Добавляем карточку поверх сетки
 				this.container.appendChild(cardView.element);
 			}
 		});

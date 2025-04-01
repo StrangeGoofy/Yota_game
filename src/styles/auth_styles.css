@@ -3,14 +3,16 @@
 body {
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: start;
     height: 100vh;
+    margin: 0;
     font-family: "Nunito", sans-serif;
     font-weight: 600;
 }
 .container {
     width: 320px;
     text-align: center;
+    margin-top: 10%;
 }
 .logo {
     width: 320px;
@@ -39,13 +41,8 @@ body {
     border-radius: 5px;
     box-sizing: border-box;
 }
-
-#login:focus {
-    border: 2px solid rgb(249, 165, 27);
-    outline: none;
-}
-#password:focus {
-    border: 2px solid rgb(96, 187, 70);
+input:focus {
+    border: 2px solid;
     outline: none;
 }
 
@@ -54,7 +51,6 @@ body {
     border-radius: 0 0 10px 10px;
     overflow: hidden;
 }
-
 button {
     flex: 1;
     padding: 12px;
@@ -65,23 +61,23 @@ button {
     cursor: pointer;
     transition: all 0.3s ease;
 }
-
 button.left {
     border-radius: 0 0 0 15px;
     border: solid rgb(66, 66, 66);
     border-width: 0 2px 2px 2px;
 }
-button.left:hover{
-    color: rgb(39, 131, 197);
-    font-weight: 900;
-}
-
 button.right {
     border-radius: 0 0 15px 0;
     border-width: 0 2px 2px 0;
+}
+button.unactive {
     background-color: #ccc;
 }
-button.right:hover{
+button.active:hover{
+    color: rgb(39, 131, 197);
+    font-weight: 900;
+}
+button.unactive:hover{
     background-color: #e0e0e0;
     color: rgb(238, 29, 35);
     font-weight: 900;

@@ -10,6 +10,11 @@ $db_user     = $config['db_user'];
 $db_password = $config['db_password'];
 $port        = $config['db_port'];
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+header('Content-Type: application/json');
+
 // Формируем DSN для PostgreSQL
 $dsn = "pgsql:host={$host};port={$port};dbname={$db};";
 
@@ -20,8 +25,8 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES   => false,
     ]);
-    // Вывод сообщения в консоль браузера об успешном подключении
-    echo "<script>console.log('Подключение к базе данных успешно установлено');</script>";
+    // Вывод сообщения в консоль браузера об успешном подключении фигня а не пхп
+    //<script>console.log('Подключение к базе данных успешно установлено');</script>
 } catch (PDOException $e) {
     die("Ошибка подключения к базе данных: " . $e->getMessage());
 }

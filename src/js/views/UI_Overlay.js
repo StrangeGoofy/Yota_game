@@ -20,7 +20,7 @@ export default class UIOverlay {
 		// Создаем кнопку завершения хода
 		this.finishTurnButton = document.createElement('button');
 		this.finishTurnButton.id = 'finishTurnButton';
-		this.finishTurnButton.textContent = 'Пропустить ход';
+		this.finishTurnButton.textContent = 'Закончить ход';
 		this.container.appendChild(this.finishTurnButton);
 
 		// Создаем кнопку отмены действия

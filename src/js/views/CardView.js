@@ -2,8 +2,8 @@ import { generateCardSVG } from './SVG_Generator.js';
 
 export default class CardView {
 	/**
-	 * @param {Object} card – объект карточки (например, { shape, color, number })
-	 * @param {number} [index] – необязательный индекс (например, для карточек из руки)
+	 * @param {Object} card – объект карточки ({ shape, color, number })
+	 * @param {number} [index] – индекс (например, для карточек из руки)
 	 * @param {Function} [onClick] – callback при клике по карточке
 	 * @param {number} [cardSize] – размер карточки (по умолчанию 80)
 	 */

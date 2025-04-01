@@ -6,6 +6,7 @@ import Camera from './controllers/Camera.js';
 import { recalcDimensions } from './views/config.js';
 
 const engine = new Engine('multiplayer', 1);
+engine.setUpdateCallback(updateViews);
 
 let selectedCardIndex = null; // Для обычного размещения карты
 let swapSelectedIndices = []; // Для режима обмена
@@ -15,7 +16,16 @@ let playerHand, gameField, camera, uiOverlay;
 // Функция обновления всех представлений
 function updateViews() {
 	if (playerHand && gameField && uiOverlay) {
+		// Обновляем pendingCards, включая те, что не отправлены на сервер
+		gameField.setPendingCards(
+			engine.playedCards.map(({ x, y, card_id, card }) => ({ x, y, card }))
+		);
+
+		// Обновляем руки
+		playerHand.updateCards(engine.hands_cards);
 		playerHand.render();
+
+		// Поле и UI
 		gameField.render();
 		uiOverlay.render(engine.gameState);
 	}
@@ -24,6 +34,7 @@ function updateViews() {
 // Функция инициализации приложения, вызывается после появления engine.gameState
 function initApp() {
 	// Создаем представление руки игрока
+	console.log('engine.hands_cards:', engine.hands_cards);
 	playerHand = new PlayerHandsView(engine.hands_cards, (card, index, e) => {
 		// Проверка хода игрока
 		if (engine.gameState.player_id != engine.gameState.current_turn_id) {
@@ -137,5 +148,7 @@ function waitForGameState(callback) {
 		setTimeout(() => waitForGameState(callback), 100);
 	}
 }
+
+
 
 waitForGameState(initApp);
