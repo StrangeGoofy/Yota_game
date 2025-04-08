@@ -51,6 +51,7 @@
   </div>
 
   <!-- Модальные окна -->
+
   <div id="lobby_modal" class="modal hidden">
     <div class="modal-content">
       <h2>Создание лобби</h2>
@@ -138,45 +139,47 @@
       const container = document.getElementById("lobby_list");
       container.innerHTML = "<p>Загрузка...</p>";
 
-      try {
-        const res = await fetch("../api/get_lobbies.php");
-        const lobbies = await res.json();
+      setInterval( async () => {
+        try {
+          const res = await fetch("../api/get_lobbies.php");
+          const lobbies = await res.json();
 
-        container.innerHTML = lobbies.length === 0 ? "<p>Нет доступных лобби</p>" : "";
+          container.innerHTML = lobbies.length === 0 ? "<p>Нет доступных лобби</p>" : "";
 
-        lobbies.forEach((lobby, i) => {
-          const card = document.createElement("div");
-          card.className = "lobby-card";
-          card.style.backgroundColor = b_colors[i % b_colors.length];
+          lobbies.forEach((lobby, i) => {
+            const card = document.createElement("div");
+            card.className = "lobby-card";
+            card.style.backgroundColor = b_colors[i % b_colors.length];
 
-          card.innerHTML = `
-            <div class="card_info">
-              <div class="line"><h3>${lobby.name}</h3></div>
-              <div class="line">
-                <p class="status-${lobby.state}">Статус: ${lobby.state}</p>
-                <p>Игроков: ${lobby.players_count}/${lobby.max_players}</p>
-              </div>
-            </div>`;
+            card.innerHTML = `
+              <div class="card_info">
+                <div class="line"><h3>${lobby.name}</h3></div>
+                <div class="line">
+                  <p class="status-${lobby.state}">Статус: ${lobby.state}</p>
+                  <p>Игроков: ${lobby.players_count}/${lobby.max_players}</p>
+                </div>
+              </div>`;
 
-          const btn = document.createElement("button");
-          btn.className = "colored openJoinModal";
-          btn.textContent = "Войти";
-          btn.dataset.lobbyId = lobby.id;
-          btn.addEventListener("click", () => {
-            document.getElementById("joinLobbyId").value = lobby.id;
-            document.getElementById("join_modal").classList.remove("hidden");
+            const btn = document.createElement("button");
+            btn.className = "colored openJoinModal";
+            btn.textContent = "Войти";
+            btn.dataset.lobbyId = lobby.id;
+            btn.addEventListener("click", () => {
+              document.getElementById("joinLobbyId").value = lobby.id;
+              document.getElementById("join_modal").classList.remove("hidden");
+            });
+
+            const wrapper = document.createElement("div");
+            wrapper.className = "modal-buttons";
+            wrapper.appendChild(btn);
+            card.appendChild(wrapper);
+            container.appendChild(card);
           });
-
-          const wrapper = document.createElement("div");
-          wrapper.className = "modal-buttons";
-          wrapper.appendChild(btn);
-          card.appendChild(wrapper);
-          container.appendChild(card);
-        });
-      } catch (error) {
-        container.innerHTML = "<p style='color:red'>Ошибка загрузки лобби</p>";
-        console.error("Ошибка:", error);
-      }
+        } catch (error) {
+          container.innerHTML = "<p style='color:red'>Ошибка загрузки лобби</p>";
+          console.error("Ошибка:", error);
+        }
+      }, 3000);
     }
 
     function bindModal(openId, closeId, modalId) {
@@ -291,6 +294,7 @@
         alert("Произошла ошибка при подключении к серверу");
       }
     });
+    
     document.getElementById("createLobbyForm").addEventListener("submit", async (e) => {
       e.preventDefault();
 
