@@ -135,6 +135,10 @@
     const input_colors = [...border_colors];
     let colorIndex = 0;
 
+    function delay(time) {
+      return new Promise(resolve => setTimeout(resolve, time));
+    }
+
     async function loadLobbies() {
       const container = document.getElementById("lobby_list");
       container.innerHTML = "<p>Загрузка...</p>";
@@ -324,6 +328,7 @@
 
         if (result.success) {
           showToast("Лобби создано");
+          await delay(1000);
           window.location.href = "../index.html";
         } else {
           showToast(result.error || "Ошибка создания лобби");
@@ -333,6 +338,8 @@
         showToast("Ошибка при подключении к серверу");
       }
     });
+
+
   </script>
 
   <script>
@@ -348,6 +355,10 @@
       }, duration);
     }
   </script>
+
+
+
+
 </body>
 
 </html>
