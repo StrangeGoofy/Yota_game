@@ -15,6 +15,9 @@ try {
     $name = isset($input['lobby_name']) ? trim($input['lobby_name']) : '';
     $password = isset($input['password']) ? trim($input['password']) : '';
     $turn_time = isset($input['turn_time']) ? (int)$input['turn_time'] : 60;
+    $req_players = isset($input['req_players']) ? (int)$input['req_players'] : 2;
+
+    //echo $req_players;
 
     if (empty($name)) {
         http_response_code(400);
@@ -22,12 +25,13 @@ try {
         exit;
     }
 
-    $stmt = $pdo->prepare("SELECT s314500.auth_create_lobby(:token, :name, :password, :turn_time) AS lobby_id");
+    $stmt = $pdo->prepare("SELECT s314500.auth_create_lobby(:token, :name, :password, :turn_time, :req_players) AS lobby_id");
     $stmt->execute([
         ':token' => $token,
         ':name' => $name,
         ':password' => $password,
-        ':turn_time' => $turn_time
+        ':turn_time' => $turn_time,
+        ':req_players' => $req_players
     ]);
 
     $result = $stmt->fetch(PDO::FETCH_ASSOC);

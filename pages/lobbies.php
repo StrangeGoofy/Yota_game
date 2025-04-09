@@ -63,7 +63,7 @@
         <input type="password" name="password" id="lobbyPasswordC" />
 
         <label>Количество игроков:</label>
-        <select name="max_players" id="maxPlayers">
+        <select name="req_players" id="req_players">
           <option value="2">2</option>
           <option value="3">3</option>
           <option value="4">4</option>
@@ -305,6 +305,7 @@
       const name = document.getElementById("lobbyName").value.trim();
       const password = document.getElementById("lobbyPasswordC").value.trim();
       const turnTime = parseInt(document.getElementById("turnTime").value);
+      const req_players = parseInt(document.getElementById("req_players").value);
 
       if (!name || !turnTime) {
         showToast("Заполните все поля");
@@ -320,7 +321,8 @@
           body: JSON.stringify({
             lobby_name: name,
             password: password,
-            turn_time: turnTime
+            turn_time: turnTime,
+            req_players: req_players 
           })
         });
 
