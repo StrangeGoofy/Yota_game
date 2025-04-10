@@ -6,9 +6,13 @@ import Camera from './controllers/Camera.js';
 import { recalcDimensions } from './views/config.js';
 
 const engine = new Engine();
-await engine.update();
+await engine.init();
 setInterval(() => {
-	engine.timer();
+	engine.update();
+	console.log(engine);
+	if(engine.gameState.player_id != engine.gameState.current_turn_id){
+		updateViews();
+	} else{	uiOverlay.render(engine.gameState); }
 }, 3000);
 
 let selectedCardIndex = null; // Выбранная карта
@@ -17,6 +21,8 @@ let swapSelectedIndices = []; // Для режима обмена
 let playerHand, gameField, camera, uiOverlay;
 
 function updateViews() {
+	playerHand.updateCards(engine.hands_cards);
+	gameField.setField(engine.gameField);
 	playerHand.render();
 	gameField.render();
 	uiOverlay.render(engine.gameState);
@@ -31,6 +37,8 @@ playerHand = new PlayerHandsView(engine.hands_cards, (card, index, e) => {
 
 	const cardElement = e.currentTarget;
 
+	console.log(document.body.classList.contains('swap-mode'));
+
 	// Если включен режим обмена
 	if (document.body.classList.contains('swap-mode')) {
 		if (cardElement.classList.contains('selected')) {
@@ -44,8 +52,8 @@ playerHand = new PlayerHandsView(engine.hands_cards, (card, index, e) => {
 		// Обычный режим – выбор карты для постановки на поле
 		if (cardElement.classList.contains('selected')) {
 			cardElement.classList.remove('selected');
-			selectedCardIndex = null;
 			gameField.render(selectedCardIndex !== null);
+			selectedCardIndex = null;
 		} else {
 			const handContainer = document.getElementById('player-hand');
 			handContainer

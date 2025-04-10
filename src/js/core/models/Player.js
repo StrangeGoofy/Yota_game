@@ -1,9 +1,9 @@
 export default class Player {
-	constructor(id, nickname) {
+	constructor(id, nickname, score) {
 		this.id = id;
 		this.nickname = nickname;
 		this.cards = []; // Карты в руке
-		this.score = 0;
+		this.score = score;
 	}
 
 	// Добавление карты в руку
@@ -13,6 +13,7 @@ export default class Player {
 
 	// Удаление карты из руки по индексу
 	removeCard(index) {
+		// console
 		if (index >= 0 && index < this.cards.length) {
 			return this.cards.splice(index, 1)[0];
 		}

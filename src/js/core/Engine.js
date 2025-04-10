@@ -6,34 +6,48 @@ import { generateDeck, shuffle } from './Utils.js';
 
 import { updateGameState } from '../Api.js';
 import { playCards } from '../Api.js';
+import { passTurn } from '../Api.js';
 
 export default class Engine {
-	constructor() {}
+	constructor() {
+		this.previousTurnId = null;
+	}
 
-	async update() {
+	// инициализация игры
+	async init() {
 		const response = await updateGameState();
 		this.gameState = response;
-		console.log('первая');
-		console.log(response);
 		this.gameField = new GameField(this.gameState.table_cards);
 		this.players = this.gameState.players.map((player) => new Player(player.id, player.nickname));
 		this.currentTurn = new CurrentTurn(this.gameState.current_turn_id);
 		this.hands_cards = this.gameState.hands_cards;
 	}
 
-	async timer() {
+	// обновление данных клиента
+	async update() {
 		const response = await updateGameState();
-		console.log('таймер');
-		console.log(response);
-		if (response.current_turn_id != response.player_id) {
-			this.gameState = response;
+		const currentTurnId = response.current_turn_id;
+
+		this.gameState = response;
+		this.players = this.gameState.players.map((player) => new Player(player.id, player.nickname, player.score));
+		// проверка смены хода
+		if (currentTurnId !== this.previousTurnId) {
+			console.log('ход сменился...');
+			this.gameField = new GameField(this.gameState.table_cards);
+			this.hands_cards = this.gameState.hands_cards;
+			this.currentTurn = new CurrentTurn(this.gameState.current_turn_id);
 		}
+		this.previousTurnId = currentTurnId;
 	}
 
+	//
 	playCardFromHand(cardIndex, x, y) {
 		const currentPlayer = this.players.find((p) => p.id === this.gameState.player_id);
+		currentPlayer.cards = this.hands_cards;
 
-		if (!currentPlayer || this.gameState.current_turn_id !== currentPlayer.id) {
+		// console.log('pid ', currentPlayer);
+
+		if (this.gameState.current_turn_id !== this.gameState.player_id) {
 			console.warn('Не ваш ход');
 			return;
 		}
@@ -47,17 +61,20 @@ export default class Engine {
 		// Удаляем карту из руки и добавляем её в локальное поле
 		currentPlayer.removeCard(cardIndex);
 		this.hands_cards = currentPlayer.cards;
+		// console.log('CT: ', this.gameState.CurrentTurn);
 		this.gameState.hands_cards = currentPlayer.cards;
-
 		this.gameField.placeCard(card, x, y);
 		this.currentTurn.addCard(card, x, y);
+		this.gameState.CurrentTurn = this.currentTurn;
 	}
 
+	//вернуть последнюю карту в руку
 	undoTurn() {
 		if (this.mode === 'multiplayer') {
 			console.warn('В мультиплеерном режиме ход выполняется через API');
 			return;
 		}
+		// console.log(this.currentTurn.cards);
 		if (this.currentTurn.cards.length === 0) {
 			alert('Нет ходов для отмены');
 			console.error('Нет ходов для отмены');
@@ -89,21 +106,30 @@ export default class Engine {
 	 * 3) Передаёт ход следующему игроку.
 	 */
 	finishTurn() {
-		if (this.mode !== 'multiplayer') return;
-
-		if (this.playedCards.length === 0) {
-			console.log('Ход пропущен');
+		if (this.currentTurn.cards.length === 0) {
+			passTurn()
+			updateGameState().then((data) => {
+				this.gameState = data;
+				this.gameField = new GameField(data.table_cards);
+				this.players = data.players.map((p) => new Player(p.id, p.nickname));
+				this.currentTurn = new CurrentTurn(data.current_turn_id);
+				this.hands_cards = data.hands_cards;
+			});
 			return;
 		}
 
-		const payload = this.playedCards.map(({ x, y, card_id }) => ({ x, y, card_id }));
+		console.log('playedCards:', this.currentTurn.cards);
+
+		const payload = this.currentTurn.cards.map(({ x, y, card }) => ({
+			x,
+			y,
+			card_id: card.id
+		}));
 
 		playCards(payload)
 			.then((response) => {
 				if (response.success) {
 					console.log('Ход завершён успешно');
-
-					this.playedCards = [];
 
 					updateGameState().then((data) => {
 						this.gameState = data;
@@ -198,7 +224,7 @@ export default class Engine {
 	}
 
 	_rollbackPlayedCards() {
-		if (this.playedCards.length === 0) return;
+		if (this.currentTurn.cards.length === 0) return;
 
 		const currentPlayer = this.players.find((p) => p.id === this.gameState.player_id);
 		if (!currentPlayer) {
@@ -207,21 +233,10 @@ export default class Engine {
 		}
 
 		// Возвращаем карты в руку
-		this.playedCards.forEach(({ card }) => {
-			if (card) {
-				currentPlayer.cards.push(card);
-			}
-		});
+		this.gameField = new GameField(this.gameState.table_cards);
+		this.currentTurn = new CurrentTurn(this.gameState.current_turn_id);
+		this.hands_cards = this.gameState.hands_cards;
 
-		// Удаляем эти карты с поля
-		this.playedCards.forEach(({ x, y }) => {
-			const index = this.gameField.cells.findIndex((cell) => cell.x === x && cell.y === y);
-			if (index !== -1) this.gameField.cells.splice(index, 1);
-		});
-
-		// Очистка
-		this.playedCards = [];
-		this.hands_cards = currentPlayer.cards;
 		this.gameState.table_cards = this.gameField.cells;
 
 		if (this._onUpdate) this._onUpdate();
