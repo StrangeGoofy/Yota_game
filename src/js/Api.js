@@ -1,7 +1,7 @@
 export async function updateGameState() {
 	const authToken = getCookie('auth_token');
 
-	const response = await fetch('/api/update_game_state.php', {
+	const response = await fetch('./api/update_game_state.php', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ token: authToken }),
@@ -12,7 +12,7 @@ export async function updateGameState() {
 export async function playCards(cards) {
 	const authToken = getCookie('auth_token');
 
-	const response = await fetch('/api/play_cards.php', {
+	const response = await fetch('./api/play_cards.php', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({
@@ -27,7 +27,7 @@ export async function playCards(cards) {
 export async function passTurn() {
 	const authToken = getCookie('auth_token');
 
-	const response = await fetch('/api/pass_turn.php', {
+	const response = await fetch('./api/pass_turn.php', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({
@@ -43,7 +43,7 @@ export async function swapCards(cards) {
 
 	const cleanedCards = cards.map(card => ({ card_id: card.card_id }));
 
-	const response = await fetch('/api/swap_cards.php', {
+	const response = await fetch('./api/swap_cards.php', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({

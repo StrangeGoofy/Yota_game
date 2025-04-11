@@ -18,7 +18,7 @@ function showToast(message, duration = 3000) {
 }
 
 const engine = new Engine();
-await engine.init();
+engine.init();
 
 let playerHand, gameField, camera, uiOverlay;
 
@@ -41,7 +41,7 @@ playerHand = new PlayerHandsView(engine.hands_cards, (card, index, e) => {
 			swapSelectedIndices = swapSelectedIndices.filter((i) => i !== index);
 		} else {
 			cardElement.classList.add('selected');
-			console.log('sI', swapSelectedIndices);
+			// console.log('sI', swapSelectedIndices);
 			swapSelectedIndices.push(index);
 			console.log('sI2', swapSelectedIndices);
 		}
