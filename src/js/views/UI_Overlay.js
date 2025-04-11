@@ -64,41 +64,64 @@ export default class UIOverlay {
 	 * @param {Object} gameState - состояние игры, содержащее players, player_id, deck_cards_count, time и т.д.
 	 */
 	render(gameState) {
-		let html = `<div class="game-info">`;
-		// 1) Вывод текущего игрока (по player_id)
-		const currentPlayer = gameState.players.find((p) => p.id === gameState.player_id);
-		const turnPlayer = gameState.players.find((p) => p.id === gameState.current_turn_id);
-		if (currentPlayer) {
-			html += `<div class="current-player">
+		if (gameState.lobby_state === "NotReady") {
+			let html = `<div class="game-wait">`;
+			html += `<div class="state-title">Ожидание игроков</div>`;
+			let currentIndex = gameState.players.findIndex((p) => p.id === gameState.player_id);
+		
+			// Проверяем, что gameState.players - это массив и он не пуст
+			if (Array.isArray(gameState.players) && gameState.players.length > 0) {
+				for (let i = 0; i < gameState.players.length; i++) {  // Начинаем с индекса 0
+					const idx = (currentIndex + i) % gameState.players.length; // Если currentIndex нужен
+					const player = gameState.players[idx];
+					html += `<div class="player-info-state">
+						${player.nickname}: ${player.state}
+					</div>`;
+				}
+			} else {
+				html += `<div class="error-message">Нет игроков в лобби</div>`;
+			}
+		
+			html += `</div>`;
+			this.infoDiv.innerHTML = html;
+
+		} else if (gameState.lobby_state === "Gaming") {
+			let html = `<div class="game-info">`;
+			// 1) Вывод текущего игрока (по player_id)
+			const currentPlayer = gameState.players.find((p) => p.id === gameState.player_id);
+			const turnPlayer = gameState.players.find((p) => p.id === gameState.current_turn_id);
+			if (currentPlayer) {
+				html += `<div class="current-player">
                 <strong>Вы:</strong> ${currentPlayer.nickname} 
                 (${currentPlayer.cards_count} карт)
 								<br/>
 								Ход: ${turnPlayer.nickname} 
               </div>`;
-		}
-		// 2) Остальные игроки (по кругу)
-		html += `<div class="other-players">`;
-		let currentIndex = gameState.players.findIndex((p) => p.id === gameState.player_id);
-		for (let i = 1; i < gameState.players.length; i++) {
-			const idx = (currentIndex + i) % gameState.players.length;
-			const player = gameState.players[idx];
-			html += `<div class="player-info">
-                ${player.nickname}: 
-                <div class="cards">`;
-			// Создаем столько иконок, сколько карт (cards_count)
-			for (let j = 0; j < player.cards_count; j++) {
-				html += `<span class="card-icon">🂠</span>`;
 			}
-			html += `   </div>
+			// 2) Остальные игроки (по кругу)
+			html += `<div class="other-players">`;
+			let currentIndex = gameState.players.findIndex((p) => p.id === gameState.player_id);
+			for (let i = 1; i < gameState.players.length; i++) {
+				const idx = (currentIndex + i) % gameState.players.length;
+				const player = gameState.players[idx];
+				html += `<div class="player-info">
+                ${player.nickname}, score: ${player.score} 
+                <div class="cards">`;
+				// Создаем столько иконок, сколько карт (cards_count)
+				for (let j = 0; j < player.cards_count; j++) {
+					html += `<span class="card-icon">🂠</span>`;
+				}
+				html += `   </div>
               </div>`;
-		}
-		html += `</div>`;
-		// 3) Количество карт в колоде
-		html += `<div class="deck-info">Колода: ${gameState.deck_cards_count} карт</div>`;
-		// 4) Текущее время хода
-		html += `<div class="turn-time">Время хода: ${gameState.time}</div>`;
-		html += `</div>`;
+			}
+			html += `</div>`;
+			// 3) Количество карт в колоде
+			html += `<div class="deck-info">Колода: ${gameState.deck_cards_count} карт</div>`;
+			// 4) Текущее время хода
+			html += `<div class="turn-time">Время хода: ${gameState.time}</div>`;
+			html += `</div>`;
 
-		this.infoDiv.innerHTML = html;
+			this.infoDiv.innerHTML = html;
+		}
 	}
 }

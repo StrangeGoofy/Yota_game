@@ -4,9 +4,23 @@ import CurrentTurn from './models/CurrentTurn.js';
 import { getCandidateCells } from './Validate.js';
 import { generateDeck, shuffle } from './Utils.js';
 
+
 import { updateGameState } from '../Api.js';
 import { playCards } from '../Api.js';
 import { passTurn } from '../Api.js';
+import { swapCards } from '../Api.js';
+
+function showToast(message, duration = 3000) {
+	const toast = document.getElementById("toast");
+	toast.textContent = message;
+	toast.classList.add("show");
+	toast.classList.remove("hidden");
+
+	setTimeout(() => {
+		toast.classList.remove("show");
+		toast.classList.add("hidden");
+	}, duration);
+}
 
 export default class Engine {
 	constructor() {
@@ -49,12 +63,14 @@ export default class Engine {
 
 		if (this.gameState.current_turn_id !== this.gameState.player_id) {
 			console.warn('Не ваш ход');
+			showToast('Не ваш ход');
 			return;
 		}
 
 		const card = this.hands_cards[cardIndex];
 		if (!card) {
 			console.error('Карта не найдена');
+			showToast('Карта не найдена');
 			return;
 		}
 
@@ -70,13 +86,9 @@ export default class Engine {
 
 	//вернуть последнюю карту в руку
 	undoTurn() {
-		if (this.mode === 'multiplayer') {
-			console.warn('В мультиплеерном режиме ход выполняется через API');
-			return;
-		}
 		// console.log(this.currentTurn.cards);
 		if (this.currentTurn.cards.length === 0) {
-			alert('Нет ходов для отмены');
+			showToast('Нет ходов для отмены');
 			console.error('Нет ходов для отмены');
 			return;
 		}
@@ -91,8 +103,7 @@ export default class Engine {
 			this.gameField.cells.splice(cellIndex, 1);
 		}
 		// Возвращаем карту обратно в руку текущего игрока
-		const currentPlayer = this.players.find((p) => p.id === this.gameState.player_id);
-		currentPlayer.cards.push(lastMove.card);
+		this.hands_cards.push(lastMove.card);
 
 		console.log(
 			`Отменён ход: карта ${lastMove.card.shape} ${lastMove.card.color} ${lastMove.card.number} убрана с (${lastMove.x}, ${lastMove.y})`
@@ -142,7 +153,7 @@ export default class Engine {
 					});
 				} else {
 					console.error('Ошибка от сервера:', response.error);
-					alert('Ошибка: ' + response.error);
+					showToast('Такой ход невозможен');
 					this._rollbackPlayedCards();
 				}
 			})
@@ -184,6 +195,7 @@ export default class Engine {
 			return;
 		}
 		const currentPlayer = this.players.find((p) => p.id === this.gameState.player_id);
+
 		if (!currentPlayer) {
 			console.error('Текущий игрок не найден');
 			return;
@@ -195,33 +207,61 @@ export default class Engine {
 			return;
 		}
 
-		// Чтобы удалять карты без смещения индексов, сортируем по убыванию
-		selectedIndices.sort((a, b) => b - a);
-		let numSwapped = 0;
-		for (const index of selectedIndices) {
-			if (index < 0 || index >= currentPlayer.cards.length) continue;
-			// Удаляем карту из руки и помещаем её в конец колоды
-			const card = currentPlayer.cards.splice(index, 1)[0];
-			this.deck_cards.push(card);
-			numSwapped++;
-		}
+		const cardsToSwap = selectedIndices.map(i => ({ card_id: this.hands_cards[i].id }));
+		console.log('Cards to swap', cardsToSwap);
+		
+		swapCards(cardsToSwap).then((response) => {
+			if (response.success) {
+				console.log('Ход завершён успешно');
 
-		// Из колоды извлекаем столько новых карт, сколько было обменяно
-		for (let i = 0; i < numSwapped; i++) {
-			if (this.deck_cards.length > 0) {
-				// Предполагается, что верх колоды находится в начале массива (shift)
-				const newCard = this.deck_cards.shift();
-				currentPlayer.cards.push(newCard);
+				updateGameState().then((data) => {
+					this.gameState = data;
+					this.gameField = new GameField(data.table_cards);
+					this.players = data.players.map((p) => new Player(p.id, p.nickname));
+					this.currentTurn = new CurrentTurn(data.current_turn_id);
+					this.hands_cards = data.hands_cards;
+
+					if (this._onUpdate) this._onUpdate();
+				});
+			} else {
+				console.error('Ошибка от сервера:', response.error);
+				showToast('Такой ход невозможен');
+				this._rollbackPlayedCards();
 			}
-		}
+		})
+			.catch((err) => {
+				console.error('Ошибка отправки:', err);
+				alert('Ошибка связи с сервером');
+				this._rollbackPlayedCards();
+			});
+
+		// // Чтобы удалять карты без смещения индексов, сортируем по убыванию
+		// selectedIndices.sort((a, b) => b - a);
+		// let numSwapped = 0;
+		// for (const index of selectedIndices) {
+		// 	if (index < 0 || index >= currentPlayer.cards.length) continue;
+		// 	// Удаляем карту из руки и помещаем её в конец колоды
+		// 	const card = currentPlayer.cards.splice(index, 1)[0];
+		// 	this.deck_cards.push(card);
+		// 	numSwapped++;
+		// }
+		// // Из колоды извлекаем столько новых карт, сколько было обменяно
+		// for (let i = 0; i < numSwapped; i++) {
+		// 	if (this.deck_cards.length > 0) {
+		// 		// Предполагается, что верх колоды находится в начале массива (shift)
+		// 		const newCard = this.deck_cards.shift();
+		// 		currentPlayer.cards.push(newCard);
+		// 	}
+		// }
 
 		// Обновляем состояние игры
 		this.gameState.hands_cards = currentPlayer.cards;
-		console.log(`Обменено ${numSwapped} карты(к).`);
+		console.log(`Обменено ${selectedIndices.length} карты(к).`);
 
 		// Передаём ход следующему игроку
 		this.passTurn();
 	}
+
 
 	_rollbackPlayedCards() {
 		if (this.currentTurn.cards.length === 0) return;

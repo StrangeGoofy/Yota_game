@@ -38,6 +38,24 @@ export async function passTurn() {
 	return result;
 }
 
+export async function swapCards(cards) {
+	const authToken = getCookie('auth_token');
+
+	const cleanedCards = cards.map(card => ({ card_id: card.card_id }));
+
+	const response = await fetch('/api/swap_cards.php', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({
+			token: authToken,
+			cards_id: cleanedCards, // массив объектов: [{ card_id }]
+		}),
+	});
+	console.log('cards ', cards);
+	const result = await response.json();
+	return result;
+}
+
 
 
 

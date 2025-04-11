@@ -5,33 +5,28 @@ import UIOverlay from './views/UI_Overlay.js';
 import Camera from './controllers/Camera.js';
 import { recalcDimensions } from './views/config.js';
 
+function showToast(message, duration = 3000) {
+	const toast = document.getElementById("toast");
+	toast.textContent = message;
+	toast.classList.add("show");
+	toast.classList.remove("hidden");
+
+	setTimeout(() => {
+		toast.classList.remove("show");
+		toast.classList.add("hidden");
+	}, duration);
+}
+
 const engine = new Engine();
 await engine.init();
-setInterval(() => {
-	engine.update();
-	console.log(engine);
-	if(engine.gameState.player_id != engine.gameState.current_turn_id){
-		updateViews();
-	} else{	uiOverlay.render(engine.gameState); }
-}, 3000);
-
-let selectedCardIndex = null; // Выбранная карта
-let swapSelectedIndices = []; // Для режима обмена
 
 let playerHand, gameField, camera, uiOverlay;
-
-function updateViews() {
-	playerHand.updateCards(engine.hands_cards);
-	gameField.setField(engine.gameField);
-	playerHand.render();
-	gameField.render();
-	uiOverlay.render(engine.gameState);
-}
 
 playerHand = new PlayerHandsView(engine.hands_cards, (card, index, e) => {
 	// Проверка хода игрока
 	if (engine.gameState.player_id != engine.gameState.current_turn_id) {
 		console.warn('Не ваш ход');
+		showToast('Не ваш ход');
 		return;
 	}
 
@@ -46,7 +41,9 @@ playerHand = new PlayerHandsView(engine.hands_cards, (card, index, e) => {
 			swapSelectedIndices = swapSelectedIndices.filter((i) => i !== index);
 		} else {
 			cardElement.classList.add('selected');
+			console.log('sI', swapSelectedIndices);
 			swapSelectedIndices.push(index);
+			console.log('sI2', swapSelectedIndices);
 		}
 	} else {
 		// Обычный режим – выбор карты для постановки на поле
@@ -74,10 +71,6 @@ gameField = new GameFieldView(engine.gameField, 'game-field', (cellDiv, x, y) =>
 		camera.autoFit(engine.gameField.cells);
 	}
 });
-
-// Инициализируем камеру
-camera = new Camera('game-field', updateViews);
-camera.autoFit(engine.gameField.cells);
 
 // Создаем UIOverlay, который в свою очередь создаст контейнер .ui с кнопками и будет выводить информацию
 uiOverlay = new UIOverlay({
@@ -125,6 +118,33 @@ uiOverlay = new UIOverlay({
 		}
 	},
 });
+
+setInterval(() => {
+	engine.update();
+	console.log(engine);
+	if (engine.gameState.player_id != engine.gameState.current_turn_id &&
+		engine.gameState.lobby_state == "Gaming"
+	) {
+		updateViews();
+	} else { uiOverlay.render(engine.gameState); }
+}, 1000);
+
+let selectedCardIndex = null; // Выбранная карта
+let swapSelectedIndices = []; // Для режима обмена
+
+function updateViews() {
+	playerHand.updateCards(engine.hands_cards);
+	gameField.setField(engine.gameField);
+	playerHand.render();
+	gameField.render();
+	uiOverlay.render(engine.gameState);
+}
+
+// Инициализируем камеру
+camera = new Camera('game-field', updateViews);
+camera.autoFit(engine.gameField.cells);
+
+
 
 updateViews();
 
