@@ -5,7 +5,8 @@ html {
 	padding: 0;
 	overflow: hidden;
 }
-body{
+
+body {
 	margin: 0;
 	font-family: "Nunito", sans-serif;
 	font-weight: 600;
@@ -13,37 +14,42 @@ body{
 	flex-direction: column;
 	align-items: center;
 }
-h3{
+
+h3 {
 	margin: 0;
 	padding: 0;
 }
-p{
+
+p {
 	margin: 0;
 	padding: 0;
 }
 
 button {
-    flex: 1;
-    padding: 5px;
-    border: 3px solid rgb(180, 192, 196);
+	flex: 1;
+	padding: 5px;
+	border: 3px solid rgb(180, 192, 196);
 	border-radius: 10px;
-    background-color: white;
-    cursor: pointer;
-    transition: all 0.3s ease;
+	background-color: white;
+	cursor: pointer;
+	transition: all 0.3s ease;
 	padding: auto;
 }
-.top_bar{
+
+.top_bar {
 	position: absolute;
 	display: flex;
 	justify-content: flex-end;
 
 	width: 90%;
 }
-.right{
+
+.right {
 	display: flex;
 	flex-direction: column;
 }
-.top_bar button{
+
+.top_bar button {
 	width: auto;
 	margin: 10px;
 	height: 20px;
@@ -51,7 +57,7 @@ button {
 	padding: 5px;
 }
 
-.container{
+.container {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -59,11 +65,12 @@ button {
 
 	margin-top: 20vh;
 }
+
 .lobby_list {
 	width: 100%;
-    max-height: 60vh;
-    overflow-y: auto;
-    padding-right: 10px;
+	max-height: 60vh;
+	overflow-y: auto;
+	padding-right: 10px;
 	border: solid #394364;
 	border-width: 0 2px 0 2px;
 
@@ -73,16 +80,19 @@ button {
 
 /* Стилизация полосы прокрутки */
 .lobby_list::-webkit-scrollbar {
-    width: 8px;
+	width: 8px;
 }
+
 .lobby_list::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 4px;
+	background: #888;
+	border-radius: 4px;
 }
+
 .lobby_list::-webkit-scrollbar-thumb:hover {
-    background: #555;
+	background: #555;
 }
-.lobby-card{
+
+.lobby-card {
 	border: solid #394364;
 	border-width: 2px 0 2px 0;
 	display: flex;
@@ -92,11 +102,13 @@ button {
 	margin: 10px;
 	padding: auto;
 }
-.card_info{
+
+.card_info {
 	flex-direction: column;
 	flex: 1;
 }
-.line{
+
+.line {
 	display: flex;
 	justify-content: space-evenly;
 	padding: 0;
@@ -104,15 +116,16 @@ button {
 	align-items: center;
 }
 
-button.openJoinModal{
+button.openJoinModal {
 	writing-mode: tb-rl;
-   	transform:rotate(180deg);
+	transform: rotate(180deg);
 
 	border: 2px solid #394364;
 	border-width: 0 2px 0 2px;
 	border-radius: 0;
 }
-.big{
+
+.big {
 	padding: auto;
 	font-size: 30px;
 }
@@ -123,46 +136,46 @@ button.openJoinModal{
 	left: 0;
 	width: 100%;
 	height: 100%;
-	background: rgba(0,0,0,0.6);
+	background: rgba(0, 0, 0, 0.6);
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	z-index: 1000;
-  }
-  
-  .modal.hidden {
+}
+
+.modal.hidden {
 	display: none;
-  }
-  
-  .modal-content {
+}
+
+.modal-content {
 	background: #fff;
 	padding: 25px;
 	border-radius: 12px;
 	width: 300px;
-	box-shadow: 0 0 10px rgba(0,0,0,0.25);
-  }
-  
-  .modal-content h2 {
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
+}
+
+.modal-content h2 {
 	margin-top: 0;
-  }
-  
-  .modal-content input,
-  .modal-content select {
+}
+
+.modal-content input,
+.modal-content select {
 	width: 100%;
 	margin-bottom: 15px;
 	padding: 8px;
 	border: 1px solid #ccc;
 	border-radius: 6px;
 	box-sizing: border-box;
-  }
-  
-  .modal-buttons {
+}
+
+.modal-buttons {
 	display: flex;
 	justify-content: space-between;
 	gap: 10px;
-  }
-  
-  .toast {
+}
+
+.toast {
 	position: fixed;
 	top: 20px;
 	right: 20px;
@@ -177,9 +190,9 @@ button.openJoinModal{
 	z-index: 9999;
 	max-width: 300px;
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  }
-  
-  .toast.show {
+}
+
+.toast.show {
 	opacity: 1;
 	pointer-events: auto;
-  }
+}

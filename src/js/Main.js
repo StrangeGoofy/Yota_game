@@ -95,7 +95,7 @@ uiOverlay = new UIOverlay({
 				confirmButton = document.createElement('button');
 				confirmButton.id = 'confirm-swap';
 				confirmButton.textContent = 'Подтвердить обмен';
-				uiOverlay.container.appendChild(confirmButton);
+				uiOverlay.gameButtons.appendChild(confirmButton);
 				confirmButton.addEventListener('click', () => {
 					engine.swapCards(swapSelectedIndices);
 					document.body.classList.remove('swap-mode');
@@ -116,6 +116,16 @@ uiOverlay = new UIOverlay({
 			}
 			updateViews();
 		}
+	},
+	onOpenRule: () => {
+		const ruleModal = document.getElementById('rule_modal');
+		if (ruleModal) {
+			ruleModal.classList.remove('hidden');
+		}
+	},
+	onExit: () => {
+		engine.exitLobby();
+		window.location.href = './pages/lobbies.php';
 	},
 });
 
@@ -143,8 +153,6 @@ function updateViews() {
 // Инициализируем камеру
 camera = new Camera('game-field', updateViews);
 camera.autoFit(engine.gameField.cells);
-
-
 
 updateViews();
 

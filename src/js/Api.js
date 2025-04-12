@@ -56,6 +56,20 @@ export async function swapCards(cards) {
 	return result;
 }
 
+export async function exitLobby() {
+	const authToken = getCookie('auth_token');
+	const response = await fetch('./api/exit_lobby.php', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({
+			token: authToken
+		}),
+	});
+	const result = await response.json();
+	return result;
+	
+}
+
 
 
 

@@ -20,12 +20,14 @@ html {
 	overflow: hidden;
 	font-family: "Nunito", sans-serif;
 }
+
 #game-container {
 	width: 100vw;
 	height: 100vh;
 	position: relative;
 	background: #eee;
 }
+
 #game-field {
 	position: absolute;
 	width: 100%;
@@ -40,6 +42,7 @@ html {
 	border: 1px solid lightgrey;
 	box-sizing: border-box;
 }
+
 .card {
 	width: 8vw;
 	height: 8vw;
@@ -59,23 +62,27 @@ html {
 #player-hand {
 	position: fixed;
 	bottom: 5%;
-	left: 0;
-	width: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	width: auto;
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	z-index: 1000;
 	gap: 10px;
 }
+
 /* Карты в руке располагаются с помощью flex (без абсолютного позиционирования) */
 #player-hand .card {
 	position: static;
 	margin: 0 10px;
 	cursor: pointer;
 }
+
 .card.selected {
 	transform: translateY(-3vh);
 }
+
 .highlight {
 	position: absolute;
 	border-radius: 8px;
@@ -84,28 +91,7 @@ html {
 	box-sizing: border-box;
 	cursor: pointer;
 }
-/* Стили для UI-контейнера с кнопкой завершения хода */
-.ui {
-	position: fixed;
-	top: 10px;
-	right: 10px;
-	z-index: 2000;
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
-	font-family: sans-serif;
-}
-.ui button {
-	padding: 5px 10px;
-	font-size: 16px;
-	cursor: pointer;
-}
-	
-/*
-.ui #undoButton{
-	background-color: aqua;
-}
-*/
+
 .toast {
 	position: fixed;
 	top: 20px;
@@ -124,12 +110,13 @@ html {
 	max-width: 300px;
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
-  .toast.show {
+
+.toast.show {
 	opacity: 1;
 	pointer-events: auto;
-  }
+}
 
-  .game-wait {
+.screen {
 	position: fixed;
 	top: 0;
 	left: 0;
@@ -138,37 +125,171 @@ html {
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
-	background: rgba(254, 255, 239, 0.74); /* Полупрозрачный фон для контейнера */
-	backdrop-filter: blur(10px); /* Применение эффекта блюра на фоне */
-	z-index: 9999; /* Устанавливаем высокий уровень, чтобы блок был поверх всего */
-	/* color: white; Цвет текста */
-	font-family: 'Arial', sans-serif;
+	align-items: center;
+	background: rgba(255, 255, 255, 0.829);
+	/* Полупрозрачный фон для контейнера */
+	backdrop-filter: blur(10px);
+	/* Применение эффекта блюра на фоне */
+	z-index: 9999;
+
 	font-weight: bold;
-  }
-  
-  /* Стиль для заголовка */
-  .state-title {
+}
+
+/* Стиль для заголовка */
+.state-title {
 	font-size: 36px;
 	margin: 20px;
 	text-align: center;
-  }
-  
-  /* Стиль для информации о игроках */
-  .player-info-state {
+	width: auto;
+}
+
+/* Стиль для информации о игроках */
+.player-info-state {
 	font-size: 24px;
 	margin: 10px 0;
 	text-align: center;
 	font-weight: normal;
-  }
-  
-  /* Стиль для сообщения об ошибке */
-  .error-message {
+	width: auto;
+}
+
+/* Стиль для сообщения об ошибке */
+.error-message {
 	font-size: 20px;
 	color: red;
 	text-align: center;
 	margin-top: 20px;
-  }
+}
 
-  .hidden {
+.hidden {
 	display: none;
-  }
+}
+
+
+/* Стили для UI-контейнера с кнопкой завершения хода */
+.ui {
+	position: fixed;
+	top: 0;
+}
+.game-info{
+	position: fixed;
+	top: 0;
+	left: 0;
+	margin: 20px;
+}
+
+.game-buttons{
+	position: fixed;
+	top: 0;
+	right: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+.util-buttons{
+	position: fixed;
+	bottom: 0;
+	right: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+body button {
+    padding: 5px;
+    border: 3px solid rgb(180, 192, 196);
+	border-radius: 10px;
+    background-color: white;
+
+    cursor: pointer;
+    transition: all 0.3s ease;
+	width: 200px;
+	height: auto;
+	margin: 10px;
+	padding: 5px;
+
+	font-size: 20px;
+}
+
+
+/*Правила - модальное окно*/
+.big {
+	padding: auto;
+	font-size: 30px;
+}
+
+.modal {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background: rgba(0, 0, 0, 0.6);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
+}
+
+/* Контент модалки */
+.modal-content {
+	background: white;
+	padding: 20px;
+	border-radius: 10px;
+	max-width: 90vw;
+	max-height: 90vh;
+	width: 100%;
+	height: 100%;
+	box-sizing: border-box;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+/* Слайдер с правилами */
+.rule-slide-container {
+	flex: 1;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+/* Изображения */
+.rule-image {
+	width: 100%;
+	height: auto;
+	object-fit: contain;
+}
+
+/* Кнопки внизу */
+.modal-buttons {
+	margin-top: 20px;
+	text-align: center;
+}
+
+.modal.hidden {
+	display: none;
+}
+
+
+.modal-buttons {
+	display: flex;
+	justify-content: space-between;
+	gap: 10px;
+}
+
+/* Стилизация полосы прокрутки */
+.lobby_list::-webkit-scrollbar {
+	width: 8px;
+}
+
+.lobby_list::-webkit-scrollbar-thumb {
+	background: #888;
+	border-radius: 4px;
+}
+
+.lobby_list::-webkit-scrollbar-thumb:hover {
+	background: #555;
+}
+

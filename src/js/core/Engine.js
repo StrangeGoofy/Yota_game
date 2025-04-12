@@ -9,6 +9,7 @@ import { updateGameState } from '../Api.js';
 import { playCards } from '../Api.js';
 import { passTurn } from '../Api.js';
 import { swapCards } from '../Api.js';
+import { exitLobby } from '../Api.js';
 
 function showToast(message, duration = 3000) {
 	const toast = document.getElementById("toast");
@@ -190,10 +191,6 @@ export default class Engine {
 	}
 
 	swapCards(selectedIndices) {
-		if (this.mode === 'multiplayer') {
-			console.warn('В мультиплеерном режиме обмен карт осуществляется через API');
-			return;
-		}
 		const currentPlayer = this.players.find((p) => p.id === this.gameState.player_id);
 
 		if (!currentPlayer) {
@@ -209,7 +206,7 @@ export default class Engine {
 
 		const cardsToSwap = selectedIndices.map(i => ({ card_id: this.hands_cards[i].id }));
 		console.log('Cards to swap', cardsToSwap);
-		
+
 		swapCards(cardsToSwap).then((response) => {
 			if (response.success) {
 				console.log('Ход завершён успешно');
@@ -234,26 +231,6 @@ export default class Engine {
 				alert('Ошибка связи с сервером');
 				this._rollbackPlayedCards();
 			});
-
-		// // Чтобы удалять карты без смещения индексов, сортируем по убыванию
-		// selectedIndices.sort((a, b) => b - a);
-		// let numSwapped = 0;
-		// for (const index of selectedIndices) {
-		// 	if (index < 0 || index >= currentPlayer.cards.length) continue;
-		// 	// Удаляем карту из руки и помещаем её в конец колоды
-		// 	const card = currentPlayer.cards.splice(index, 1)[0];
-		// 	this.deck_cards.push(card);
-		// 	numSwapped++;
-		// }
-		// // Из колоды извлекаем столько новых карт, сколько было обменяно
-		// for (let i = 0; i < numSwapped; i++) {
-		// 	if (this.deck_cards.length > 0) {
-		// 		// Предполагается, что верх колоды находится в начале массива (shift)
-		// 		const newCard = this.deck_cards.shift();
-		// 		currentPlayer.cards.push(newCard);
-		// 	}
-		// }
-
 		// Обновляем состояние игры
 		this.gameState.hands_cards = currentPlayer.cards;
 		console.log(`Обменено ${selectedIndices.length} карты(к).`);
@@ -262,6 +239,19 @@ export default class Engine {
 		this.passTurn();
 	}
 
+	exitLobby() {
+		exitLobby().then((response) => {
+			if (response.success) {
+				console.log('Игрок вышел');
+
+				updateGameState();
+			} else {
+				console.error('Ошибка от сервера:', response.error);
+				showToast('Такой ход невозможен');
+				this._rollbackPlayedCards();
+			}
+		});
+	}
 
 	_rollbackPlayedCards() {
 		if (this.currentTurn.cards.length === 0) return;
