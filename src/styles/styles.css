@@ -293,3 +293,22 @@ body button {
 	background: #555;
 }
 
+.screen-blocker {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background-color: rgba(0, 0, 0, 0.85);
+	color: white;
+	font-size: 1.5rem;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+	padding: 20px;
+	z-index: 9999;
+}
+.screen-blocker.hidden{
+	display: none !important;
+}

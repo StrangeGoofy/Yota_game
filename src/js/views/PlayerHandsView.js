@@ -15,15 +15,19 @@ export default class PlayerHandsView {
 
 	render() {
 		this.container.innerHTML = '';
-		//console.log('this.hands_cards:', this.hands_cards);
-		// Проходим по массиву карт руки и создаем для каждой экземпляр CardView
+	
+		if (!Array.isArray(this.hands_cards)) {
+			console.warn('hands_cards не массив или undefined:', this.hands_cards);
+			return;
+		}
+	
 		this.hands_cards.forEach((card, index) => {
 			const cardView = new CardView(card, index, (card, index, e) => {
 				if (this.onCardClick) {
 					this.onCardClick(card, index, e);
 				}
 			});
-
+	
 			this.container.appendChild(cardView.element);
 		});
 	}
